@@ -48,7 +48,6 @@
 
 	// const Food = require("./foods").Food
 	var FoodService = __webpack_require__(1);
-
 	var foodService = new FoodService();
 
 	foodService.getFoods();
@@ -56,6 +55,10 @@
 	$(".food-form").on('submit', function (e) {
 	  e.preventDefault();
 	  foodService.validateFood();
+	});
+
+	$('input[name="filter"]').on('keyup', function () {
+	  foodService.filterFoods();
 	});
 
 /***/ }),
@@ -168,6 +171,22 @@
 	      $foodForm.find('input[name="calories"]').val("");
 	      $foodForm.find('.error').remove();
 	    }
+	  }, {
+	    key: "filterFoods",
+	    value: function filterFoods() {
+	      var filter = $('input[name="filter"]').val().toLowerCase();
+	      var foods = $('.food');
+	      if (filter !== "") {
+	        foods.hide();
+	        $.each(foods, function (index, food) {
+	          if (food.innerHTML.toLowerCase().includes(filter)) {
+	            $("#" + food.id).show();
+	          }
+	        });
+	      } else {
+	        foods.show();
+	      }
+	    }
 	  }]);
 
 	  return FoodService;
@@ -210,7 +229,7 @@
 	  }, {
 	    key: 'foodRow',
 	    value: function foodRow() {
-	      return '<tr id=' + this.id + '><td>' + this.name + '</td><td>' + this.calories + '</td><td id="delete">delete</td></tr>';
+	      return '<tr class=\'food\' id=' + this.id + '>\n              <td>' + this.name + '</td>\n              <td>' + this.calories + '</td>\n              <td id="delete">delete</td>\n            </tr>';
 	    }
 	  }]);
 
