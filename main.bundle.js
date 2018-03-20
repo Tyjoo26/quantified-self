@@ -247,16 +247,26 @@
 	    key: "filterFoods",
 	    value: function filterFoods() {
 	      var filter = $('input[name="filter"]').val().toLowerCase();
-	      var foods = $('.food');
+	      var foods = this.setFilterTable();
 	      if (filter !== "") {
 	        foods.hide();
 	        $.each(foods, function (index, food) {
-	          if (food.innerHTML.toLowerCase().includes(filter)) {
-	            $("#" + food.id).show();
+	          if ($(food).find('#name').html().toLowerCase().includes(filter)) {
+	            $(food).show();
 	          }
 	        });
 	      } else {
 	        foods.show();
+	      }
+	    }
+	  }, {
+	    key: "setFilterTable",
+	    value: function setFilterTable() {
+	      var uri = window.location.pathname;
+	      if (uri === '/' || uri === '') {
+	        return $('.add-foods-table').find('.food');
+	      } else if (uri === '/foods.html') {
+	        return $('.foods-table').find('.food');
 	      }
 	    }
 	  }]);
@@ -305,12 +315,12 @@
 	  }, {
 	    key: 'foodRowDeletable',
 	    value: function foodRowDeletable() {
-	      return '<tr class=\'food\' id=' + this.id + '>\n              <td contentEditable>' + this.name + '</td>\n              <td contentEditable>' + this.calories + '</td>\n              <td id="delete">delete</td>\n            </tr>';
+	      return '<tr class=\'food\' id=' + this.id + '>\n              <td id="name" contentEditable>' + this.name + '</td>\n              <td contentEditable>' + this.calories + '</td>\n              <td id="delete">delete</td>\n            </tr>';
 	    }
 	  }, {
 	    key: 'foodRowCheckable',
 	    value: function foodRowCheckable() {
-	      return '<tr class=\'food\' id=\'' + this.id + '\'>\n              <td><input type="checkbox" id="' + this.id + '"> </td>\n              <td contentEditable>' + this.name + '</td>\n              <td contentEditable>' + this.calories + '</td>\n            </tr>';
+	      return '<tr class=\'food\' id=\'' + this.id + '\'>\n              <td><input type="checkbox" id="' + this.id + '"> </td>\n              <td id="name" contentEditable>' + this.name + '</td>\n              <td contentEditable>' + this.calories + '</td>\n            </tr>';
 	    }
 	  }]);
 
@@ -383,12 +393,14 @@
 	  }, {
 	    key: 'addMeals',
 	    value: function addMeals(meals) {
+	      var dailyCalories = this.calculateTotalCal(meals);
 	      for (var i = 0; i < meals.length; i++) {
 	        $('#' + meals[i].name.toLowerCase()).find('table').html('<th>Name</th><th>Calories</th>');
 	        var foods = this.sortFoods(meals[i].foods);
 	        this.appendFoods(foods, meals[i].name);
 	        this.appendMealTotalCal(foods, meals[i].name);
 	      }
+	      this.appendTotalsTable(dailyCalories);
 	    }
 	  }, {
 	    key: 'sortFoods',
@@ -434,17 +446,70 @@
 	    value: function remainingCaloriesRow(total_cal, meal) {
 	      if (meal === "Snack") {
 	        var goal = 200;
-	        return '<tr class=remaining_cals>\n                <td class="remain_cal_label">Calories Remaining:</td>\n                <td class="remain_cals">' + (goal - total_cal) + '</td>\n              </tr>';
+	        if (goal - total_cal < 0) {
+	          return '<tr class="remaining_cals">\n        <td>Calories Remaining:</td>\n        <td class="negative-cal">' + (goal - total_cal) + '</td>\n        </tr>';
+	        } else if (goal - total_cal > 0) {
+	          return '<tr class="remaining_cals">\n        <td>Calories Remaining:</td>\n        <td class="positive-cal">' + (goal - total_cal) + '</td>\n        </tr>';
+	        }
 	      } else if (meal === "Breakfast") {
 	        var _goal = 400;
-	        return '<tr class=remaining_cals>\n                <td class="remain_cal_label">Calories Remaining:</td>\n                <td class="remain_cals">' + (_goal - total_cal) + '</td>\n              </tr>';
+	        if (_goal - total_cal < 0) {
+	          return '<tr class=\'remaining_cals\'>\n        <td>Calories Remaining:</td>\n        <td class="negative-cal">' + (_goal - total_cal) + '</td>\n        </tr>';
+	        } else if (_goal - total_cal > 0) {
+	          return '<tr class=remaining_cals>\n        <td>Calories Remaining:</td>\n        <td class="positive-cal">' + (_goal - total_cal) + '</td>\n        </tr>';
+	        }
 	      } else if (meal === "Lunch") {
 	        var _goal2 = 600;
-	        return '<tr class=remaining_cals>\n                <td class="remain_cal_label">Calories Remaining:</td>\n                <td class="remain_cals">' + (_goal2 - total_cal) + '</td>\n              </tr>';
+	        if (_goal2 - total_cal < 0) {
+	          return '<tr class=\'remaining_cals\'>\n        <td>Calories Remaining:</td>\n        <td class="negative-cal">' + (_goal2 - total_cal) + '</td>\n        </tr>';
+	        } else if (_goal2 - total_cal > 0) {
+	          return '<tr class=\'remaining_cals\'>\n        <td>Calories Remaining:</td>\n        <td class="positive-cal">' + (_goal2 - total_cal) + '</td>\n        </tr>';
+	        }
 	      } else if (meal === "Dinner") {
 	        var _goal3 = 800;
-	        return '<tr class=remaining_cals>\n                <td class="remain_cal_label">Calories Remaining:</td>\n                <td class="remain_cals">' + (_goal3 - total_cal) + '</td>\n              </tr>';
+	        if (_goal3 - total_cal < 0) {
+	          return '<tr class=\'remaining_cals\'>\n        <td>Calories Remaining:</td>\n        <td class="negative-cal">' + (_goal3 - total_cal) + '</td>\n        </tr>';
+	        } else if (_goal3 - total_cal > 0) {
+	          return '<tr class="remaining_cals">\n        <td>Calories Remaining:</td>\n        <td class="positive-cal">' + (_goal3 - total_cal) + '</td>\n        </tr>';
+	        }
 	      }
+	    }
+	  }, {
+	    key: 'appendTotalsTable',
+	    value: function appendTotalsTable(dailyCalories) {
+	      $("#totals").append(this.getTotalGoalCalRow()).append(this.getCalorieConsumedRow(dailyCalories)).append(this.getRemainingCaloriesRow(dailyCalories));
+	    }
+	  }, {
+	    key: 'getTotalGoalCalRow',
+	    value: function getTotalGoalCalRow() {
+	      return '<tr>\n              <td>Goal Calories</td>\n              <td id="goal-caalories">2000</td>\n            </tr>';
+	    }
+	  }, {
+	    key: 'getCalorieConsumedRow',
+	    value: function getCalorieConsumedRow(dailyCalories) {
+	      return '<tr>\n              <td>Calories Consumed</td>\n              <td id="calories-consumed">' + dailyCalories + '</td>\n            </tr>';
+	    }
+	  }, {
+	    key: 'getRemainingCaloriesRow',
+	    value: function getRemainingCaloriesRow(dailyCalories) {
+	      if (2000 - dailyCalories > 0) {
+	        return '<tr>\n      <td>Remaining Calories</td>\n      <td id="positive-remaining-calories">' + (2000 - dailyCalories) + '</td></tr>';
+	      } else if (2000 - dailyCalories < 0) {
+	        return '<tr>\n      <td>Remaining Calories</td>\n      <td id="negative-remaining-calories">' + (2000 - dailyCalories) + '</td></tr>';
+	      }
+	    }
+	  }, {
+	    key: 'calculateTotalCal',
+	    value: function calculateTotalCal(meals) {
+	      var dailyTotal = 0;
+	      for (var i = 0; i < meals.length; i++) {
+	        var mealTotal = 0;
+	        meals[i].foods.forEach(function (food) {
+	          mealTotal += food.calories;
+	        });
+	        dailyTotal += mealTotal;
+	      }
+	      return dailyTotal;
 	    }
 	  }]);
 

@@ -96,3 +96,11 @@ tr {
   align-items: center;
   background-color: #086788;
 }
+
+.negative-cal{
+  color: red;
+}
+
+.positive-cal{
+  color:green;
+}
