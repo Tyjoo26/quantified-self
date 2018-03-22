@@ -350,9 +350,9 @@
 	  function Food(id, name, calories) {
 	    _classCallCheck(this, Food);
 
-	    this.id = id;
+	    this.id = +id;
 	    this.name = name;
-	    this.calories = calories;
+	    this.calories = +calories;
 	  }
 
 	  _createClass(Food, [{
@@ -436,11 +436,12 @@
 	    _classCallCheck(this, MealService);
 
 	    this.baseUrl = "https://qs-1710-rails.herokuapp.com/api/v1/meals";
+	    this.meals = {};
 	    this.mealCalorieGoals = {
-	      "Breakfast": 400,
-	      "Lunch": 600,
-	      "Dinner": 800,
-	      "Snack": 200
+	      "breakfast": 400,
+	      "lunch": 600,
+	      "dinner": 800,
+	      "snack": 200
 	    };
 	  }
 
@@ -456,13 +457,15 @@
 	  }, {
 	    key: 'addMeals',
 	    value: function addMeals(meals) {
-	      var dailyCalories = this.calculateTotalCal(meals);
+
 	      for (var i = 0; i < meals.length; i++) {
+	        this.meals[meals[i].name.toLowerCase()] = meals[i].foods;
 	        $('#' + meals[i].name.toLowerCase()).find('table').html('<th>Name</th><th>Calories</th>');
 	        var foods = this.sortFoods(meals[i].foods);
 	        this.appendFoods(foods, meals[i].name);
 	        this.appendMealTotalCal(foods, meals[i].name);
 	      }
+	      var dailyCalories = this.calculateTotalCal(this.meals);
 	      this.appendTotalsTable(dailyCalories);
 	    }
 	  }, {
@@ -471,7 +474,7 @@
 	      var checkedFoods = $('.add-foods-table').find('input:checked');
 	      for (var i = 0; i < checkedFoods.length; i++) {
 	        var $food = $(checkedFoods[i]).parent().parent();
-	        fetch(this.baseUrl + '/' + mealId + '/foods/' + $food.attr('id'), this.postFoodToMealConfig()).then(handleResponse).then(this.appendFoodToMeal($food, mealName)).then($(checkedFoods[i]).prop('checked', false)).catch(errorLog);
+	        fetch(this.baseUrl + '/' + mealId + '/foods/' + $food.attr('id'), this.postFoodToMealConfig()).then(handleResponse).then(this.appendFoodToMeal($food, mealName)).then(this.appendMealTotalCal(this.meals[mealName], mealName)).then($(checkedFoods[i]).prop('checked', false)).catch(errorLog);
 	      }
 	    }
 	  }, {
@@ -498,6 +501,8 @@
 	      var foodCalories = $food.find('#calories').html();
 	      var food = new Food(foodId, foodName, foodCalories);
 	      food.prependFood($('#' + mealName.toLowerCase()).find('table'));
+	      mealName = mealName.toLowerCase();
+	      this.meals[mealName].push(food);
 	    }
 	  }, {
 	    key: 'postFoodToMealConfig',
@@ -529,11 +534,19 @@
 	  }, {
 	    key: 'appendMealTotalCal',
 	    value: function appendMealTotalCal(foods, meal) {
+	      this.removeCalorieRows($('#' + meal.toLowerCase()).find('table'));
 	      var total_cal = 0;
 	      foods.forEach(function (food) {
 	        total_cal += food.calories;
 	      });
+
 	      this.appendCalorieRows($('#' + meal.toLowerCase()).find('table'), total_cal, meal);
+	    }
+	  }, {
+	    key: 'removeCalorieRows',
+	    value: function removeCalorieRows(table) {
+	      table.find("tr.meal_total").remove();
+	      table.find("tr.remaining_cals").remove();
 	    }
 	  }, {
 	    key: 'appendCalorieRows',
@@ -549,6 +562,7 @@
 	  }, {
 	    key: 'remainingCaloriesRow',
 	    value: function remainingCaloriesRow(total_cal, meal) {
+
 	      if (this.mealCalorieGoals[meal] < total_cal) {
 	        return '<tr class="remaining_cals">\n      <td>Calories Remaining:</td>\n      <td class="negative-cal">' + (this.mealCalorieGoals[meal] - total_cal) + '</td>\n      </tr>';
 	      } else if (this.mealCalorieGoals[meal] > total_cal) {
@@ -583,9 +597,9 @@
 	    key: 'calculateTotalCal',
 	    value: function calculateTotalCal(meals) {
 	      var dailyTotal = 0;
-	      for (var i = 0; i < meals.length; i++) {
+	      for (var meal in meals) {
 	        var mealTotal = 0;
-	        meals[i].foods.forEach(function (food) {
+	        meals[meal].forEach(function (food) {
 	          mealTotal += food.calories;
 	        });
 	        dailyTotal += mealTotal;
