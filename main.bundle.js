@@ -86,6 +86,10 @@
 	  foodService.validateFoodPatch(e);
 	});
 
+	$(".foods-table").on("focusout", function (e) {
+	  foodService.validateFoodPatch(e);
+	});
+
 	$('input[name="filter"]').on('keyup', function () {
 	  foodService.filterFoods();
 	});
