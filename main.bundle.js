@@ -313,10 +313,10 @@
 	    key: "setFilterTable",
 	    value: function setFilterTable() {
 	      var uri = window.location.pathname;
-	      if (uri === '/' || uri === '') {
-	        return $('.add-foods-table').find('.food');
-	      } else if (uri === '/foods.html') {
+	      if (uri.includes('/foods.html')) {
 	        return $('.foods-table').find('.food');
+	      } else if (uri.includes("") || uri.includes("/") || uri.includes("/quantified-self") || uri.includes("/quantified-self-frontend")) {
+	        return $('.add-foods-table').find('.food');
 	      }
 	    }
 	  }, {
