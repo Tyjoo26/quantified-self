@@ -498,18 +498,10 @@
 	  }, {
 	    key: 'deleteFoodFromMeal',
 	    value: function deleteFoodFromMeal(e) {
-	      var _this2 = this;
-
 	      var mealId = e.target.parentNode.parentNode.parentNode.id;
 	      var mealName = e.target.parentNode.parentNode.parentNode.parentNode.id;
 	      var foodId = e.target.parentNode.parentNode.dataset.id;
-	      fetch(this.baseUrl + '/' + mealId + '/foods/' + foodId, { method: "DELETE" }).then(function (response) {
-	        return _this2.removeFoodRow(e);
-	      }).then(function (response) {
-	        return _this2.deleteFoodFromMealObject(mealName, foodId);
-	      }).then(function (response) {
-	        return _this2.updateMealCalAfterDelete(mealName);
-	      }).then(this.appendTotalsTable()).catch(errorLog);
+	      fetch(this.baseUrl + '/' + mealId + '/foods/' + foodId, { method: "DELETE" }).then(this.removeFoodRow(e)).then(this.deleteFoodFromMealObject(mealName, foodId)).then(this.updateMealCalAfterDelete(mealName)).then(this.appendTotalsTable()).catch(errorLog);
 	    }
 	  }, {
 	    key: 'updateMealCalAfterDelete',
@@ -534,7 +526,7 @@
 	  }, {
 	    key: 'appendFoodToMeal',
 	    value: function appendFoodToMeal($food, mealName) {
-	      var foodId = $food.attr('id');
+	      var foodId = $food.data('id');
 	      var foodName = $food.find('[data-id=name]').html();
 	      var foodCalories = $food.find('[data-id=calories]').html();
 	      var food = new Food(foodId, foodName, foodCalories);
@@ -608,14 +600,14 @@
 	  }, {
 	    key: 'appendTotalsTable',
 	    value: function appendTotalsTable() {
-	      var dailyCalories = this.calculateTotalCal(this.meals);
+	      var dailyCalories = this.calculateTotalCal();
 	      $("#totals").find("tr").remove();
 	      $("#totals").append(this.getTotalGoalCalRow()).append(this.getCalorieConsumedRow(dailyCalories)).append(this.getRemainingCaloriesRow(dailyCalories));
 	    }
 	  }, {
 	    key: 'getTotalGoalCalRow',
 	    value: function getTotalGoalCalRow() {
-	      return '\n              <td>Goal Calories</td>\n              <td id="goal-caalories">2000</td>\n            ';
+	      return '<tr>\n              <td>Goal Calories</td>\n              <td id="goal-caalories">2000</td>\n            </tr>';
 	    }
 	  }, {
 	    key: 'getCalorieConsumedRow',
@@ -633,7 +625,8 @@
 	    }
 	  }, {
 	    key: 'calculateTotalCal',
-	    value: function calculateTotalCal(meals) {
+	    value: function calculateTotalCal() {
+	      var meals = this.meals;
 	      var dailyTotal = 0;
 	      for (var meal in meals) {
 	        var mealTotal = 0;
